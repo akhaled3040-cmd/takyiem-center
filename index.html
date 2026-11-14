@@ -4,49 +4,82 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TAKYIEM | Call Center Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root{--green:#064C40;--mint:#65C6B0;--pale:#E7F5F1;--ink:#183B35;--muted:#6c817b;--line:#dcebe6;--bg:#f4f8f6;--white:#fff;--amber:#fff2cc}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+    :root{--green:#064C40;--mint:#65C6B0;--pale:#E7F5F1;--ink:#183B35;--muted:#6c817b;--line:#dcebe6;--bg:#f4f8f6;--white:#fff}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
     .top{background:var(--green);color:white;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-    .brand{display:flex;align-items:center;gap:14px}.logoMark{width:46px;height:46px;border-radius:12px;background:var(--mint);display:grid;place-items:center;color:var(--green);font-weight:900;font-size:21px}
-    h1{font-size:21px;margin:0;letter-spacing:.3px}.sub{font-size:12px;color:#c9e9df;margin-top:5px}.credits{font-size:10px;color:#e2f5ef;margin-top:7px;letter-spacing:.35px;font-weight:700}
-    .topRight{font-size:12px;color:#d5eee7;text-align:right}.wrap{max-width:1400px;margin:24px auto;padding:0 22px}
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}.toolbar input,.toolbar select{background:white;border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--ink);font-size:13px;min-width:160px}
-    .toolbar input[type=search]{flex:1;min-width:230px}.btn{border:0;border-radius:10px;background:var(--green);color:white;padding:11px 16px;font-weight:700;cursor:pointer}.btn:hover{opacity:.9}
+    .brand{display:flex;align-items:center;gap:14px}
+    .logoMark{width:46px;height:46px;border-radius:12px;background:var(--mint);display:grid;place-items:center;color:var(--green);font-weight:900;font-size:21px}
+    h1{font-size:21px;margin:0;letter-spacing:.3px}
+    .sub{font-size:12px;color:#c9e9df;margin-top:5px}
+    .credits{font-size:10px;color:#e2f5ef;margin-top:7px;letter-spacing:.35px;font-weight:700;line-height:1.6}
+    .topRight{font-size:12px;color:#d5eee7;text-align:right}
+    .wrap{max-width:1400px;margin:24px auto;padding:0 22px}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+    .toolbar input,.toolbar select{background:white;border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--ink);font-size:13px;min-width:160px}
+    .toolbar input[type=search]{flex:1;min-width:230px}
+    .btn{border:0;border-radius:10px;background:var(--green);color:white;padding:11px 16px;font-weight:700;cursor:pointer}
+    .btn:hover{opacity:.9}.btn:disabled{opacity:.55;cursor:wait}
     .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
     .card{background:white;border:1px solid var(--line);border-radius:15px;padding:17px;box-shadow:0 3px 12px rgba(6,76,64,.04)}
-    .metricLabel{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}.metric{font-size:31px;font-weight:800;color:var(--green);margin-top:10px}
+    .metricLabel{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+    .metric{font-size:31px;font-weight:800;color:var(--green);margin-top:10px}
     .metricFoot{font-size:11px;color:var(--muted);margin-top:4px}
-    .panels{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-bottom:18px}.panelTitle{font-size:14px;font-weight:800;margin:0 0 14px}
-    .chartBox{height:270px;position:relative}.tableCard{padding:0;overflow:hidden}.tableHead{padding:17px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-    .count{font-size:12px;color:var(--muted)}.tableScroll{overflow:auto;max-height:520px}table{border-collapse:collapse;width:100%;font-size:12px;min-width:850px}
+    .panels{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-bottom:18px}
+    .panelTitle{font-size:14px;font-weight:800;margin:0 0 14px}
+    .chartBox{height:270px;position:relative}
+    .tableCard{padding:0;overflow:hidden}
+    .tableHead{padding:17px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .count{font-size:12px;color:var(--muted)}
+    .tableScroll{overflow:auto;max-height:520px}
+    table{border-collapse:collapse;width:100%;font-size:12px;min-width:850px}
     th{position:sticky;top:0;background:var(--pale);color:var(--green);text-align:left;padding:12px 13px;z-index:1}
-    td{padding:11px 13px;border-bottom:1px solid #edf3f0;vertical-align:top}tr:hover td{background:#f8fcfa}
+    td{padding:11px 13px;border-bottom:1px solid #edf3f0;vertical-align:top}
+    tr:hover td{background:#f8fcfa}
     .pill{display:inline-block;border-radius:99px;padding:5px 9px;background:var(--pale);color:var(--green);font-weight:700;font-size:11px;white-space:nowrap}
-    .empty,.loading,.error{padding:34px;text-align:center;color:var(--muted);font-size:13px}.error{color:#a33}
-    .footer{font-size:11px;color:var(--muted);text-align:center;padding:18px}
+    .empty,.loading,.error{padding:34px;text-align:center;color:var(--muted);font-size:13px}
+    .error{color:#a33}
+    .footer{font-size:11px;color:var(--muted);text-align:center;padding:18px;line-height:1.7}
     @media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.panels{grid-template-columns:1fr}}
-    @media(max-width:520px){.wrap{padding:0 12px}.top{padding:16px}.grid{gap:9px}.card{padding:13px}.metric{font-size:25px}.toolbar>*{width:100%}}
+    @media(max-width:520px){.wrap{padding:0 12px}.top{padding:16px}.grid{gap:9px}.card{padding:13px}.metric{font-size:25px}.toolbar>*{width:100%}.topRight{text-align:left}}
   </style>
 </head>
 <body>
 <header class="top">
-  <div class="brand"><div class="logoMark">T</div><div><h1>TAKYIEM | CALL CENTER</h1><div class="sub">Customer Leads Monitoring</div><div class="credits">PREPARED FOR MR ABDEL HADY ELBAMBY — CEO &nbsp;|&nbsp; MANAGER: MR YASSER ALI &nbsp;|&nbsp; PREPARED BY AHMED KHALED</div></div></div>
-  <div class="topRight"><div id="connection">Connecting to Google Sheets…</div><div id="updated"></div></div>
+  <div class="brand">
+    <div class="logoMark">T</div>
+    <div>
+      <h1>TAKYIEM | CALL CENTER</h1>
+      <div class="sub">Customer Leads Monitoring</div>
+      <div class="credits">PREPARED FOR MR ABDEL HADY ELBAMBY — CEO &nbsp;|&nbsp; MANAGER: MR YASSER ALI &nbsp;|&nbsp; PREPARED BY AHMED KHALED</div>
+    </div>
+  </div>
+  <div class="topRight">
+    <div id="connection">Connecting to Google Sheets…</div>
+    <div id="updated"></div>
+  </div>
 </header>
+
 <main class="wrap">
   <section class="toolbar">
     <input id="search" type="search" placeholder="Search customer name or phone…">
-    <select id="category"><option value="">All categories</option><option>Interested</option><option>Inquiries</option><option>Booking Not Completed</option></select>
+    <select id="category">
+      <option value="">All categories</option>
+      <option>Interested</option>
+      <option>Inquiries</option>
+      <option>Booking Not Completed</option>
+    </select>
     <select id="source"><option value="">All lead sources</option></select>
     <input id="from" type="date" aria-label="From date">
     <input id="to" type="date" aria-label="To date">
-    <button class="btn" onclick="loadData()">Refresh</button>
+    <button class="btn" id="refreshButton" onclick="loadData(true)">Refresh</button>
   </section>
 
   <section class="grid">
-    <div class="card"><div class="metricLabel">Total Leads</div><div class="metric" id="total">—</div><div class="metricFoot">Across the three categories</div></div>
+    <div class="card"><div class="metricLabel">Total Leads</div><div class="metric" id="total">—</div><div class="metricFoot">Unique customers across the three categories</div></div>
     <div class="card"><div class="metricLabel">Interested</div><div class="metric" id="interested">—</div><div class="metricFoot">Potential customers</div></div>
     <div class="card"><div class="metricLabel">Inquiries</div><div class="metric" id="inquiries">—</div><div class="metricFoot">Customers asking for information</div></div>
     <div class="card"><div class="metricLabel">Booking Not Completed</div><div class="metric" id="incomplete">—</div><div class="metricFoot">Bookings that were not completed</div></div>
@@ -58,59 +91,366 @@
   </section>
 
   <section class="card tableCard">
-    <div class="tableHead"><h2 class="panelTitle" style="margin:0">Customer Records</h2><span class="count" id="recordCount">0 records</span></div>
-    <div class="tableScroll"><table><thead><tr><th>Category</th><th>Customer Name</th><th>Phone Number</th><th>Visit Date</th><th>Lead Source</th><th>Recorded By</th><th>Notes</th></tr></thead><tbody id="rows"><tr><td colspan="7" class="loading">Loading records…</td></tr></tbody></table></div>
+    <div class="tableHead">
+      <h2 class="panelTitle" style="margin:0">Customer Records</h2>
+      <span class="count" id="recordCount">0 records</span>
+    </div>
+    <div class="tableScroll">
+      <table>
+        <thead><tr><th>Category</th><th>Customer Name</th><th>Phone Number</th><th>Visit Date</th><th>Lead Source</th><th>Recorded By</th><th>Notes</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="7" class="loading">Loading records…</td></tr></tbody>
+      </table>
+    </div>
   </section>
   <div class="footer">TAKYIEM • Live data from the connected Google Sheet • Auto-refresh every 60 seconds</div>
 </main>
+
 <script>
-let allLeads=[], categoryChart=null, sourceChart=null;
-const $=id=>document.getElementById(id);
-function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function loadData(){
-  $('connection').textContent='Syncing…';
-  google.script.run.withSuccessHandler(data=>{
-    allLeads=data.leads||[];
-    $('connection').textContent='● Connected to Google Sheets';
-    $('updated').textContent='Last sync: '+new Date(data.updatedAt).toLocaleString();
-    const sources=[...new Set(allLeads.map(x=>x.source||'Not specified'))].sort();
-    const old=$('source').value;
-    $('source').innerHTML='<option value="">All lead sources</option>'+sources.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
-    $('source').value=sources.includes(old)?old:'';
-    render();
-  }).withFailureHandler(err=>{
-    $('connection').textContent='Connection error';
-    $('rows').innerHTML=`<tr><td colspan="7" class="error">${esc(err.message||err)}</td></tr>`;
-  }).getDashboardData();
+'use strict';
+
+const SHEET_ID = '1O02FcTdZlkowogObQ9uFn2rHhcNzroC17h2GQOJzh0A';
+const TAB_NAMES = ['Interested', 'Inquiries', 'Booking Not Completed'];
+const $ = id => document.getElementById(id);
+
+let allLeads = [];
+let categoryChart = null;
+let sourceChart = null;
+let loading = false;
+
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  })[ch]);
 }
-function filtered(){
-  const q=$('search').value.trim().toLowerCase(), cat=$('category').value, src=$('source').value, from=$('from').value, to=$('to').value;
-  return allLeads.filter(x=>{
-    const hay=(x.name+' '+x.phone).toLowerCase();
-    return (!q||hay.includes(q))&&(!cat||x.category===cat)&&(!src||(x.source||'Not specified')===src)&&(!from||!x.date||x.date>=from)&&(!to||!x.date||x.date<=to);
+
+function pad(value) {
+  return String(value).padStart(2, '0');
+}
+
+function toISODate(date) {
+  return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+}
+
+function getCell(sheet, row, col) {
+  return sheet[XLSX.utils.encode_cell({r: row, c: col})] || null;
+}
+
+function getCellText(sheet, row, col) {
+  const cell = getCell(sheet, row, col);
+  if (!cell) return '';
+  if (cell.v instanceof Date && !isNaN(cell.v)) return toISODate(cell.v);
+
+  // Use the displayed value so international phone formatting and leading zeros are retained.
+  const value = cell.w !== undefined && cell.w !== null ? cell.w : cell.v;
+  return String(value ?? '').trim();
+}
+
+function getCellDate(sheet, row, col) {
+  const cell = getCell(sheet, row, col);
+  if (!cell) return '';
+
+  if (cell.v instanceof Date && !isNaN(cell.v)) return toISODate(cell.v);
+
+  if (typeof cell.v === 'number' && cell.z && /[dmy]/i.test(cell.z)) {
+    const parts = XLSX.SSF.parse_date_code(cell.v);
+    if (parts) return parts.y + '-' + pad(parts.m) + '-' + pad(parts.d);
+  }
+
+  const value = String(cell.w !== undefined && cell.w !== null ? cell.w : (cell.v ?? '')).trim();
+  if (!value) return '';
+
+  let match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (match) return match[1] + '-' + pad(match[2]) + '-' + pad(match[3]);
+
+  match = value.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (match) {
+    const first = Number(match[1]);
+    const second = Number(match[2]);
+    const year = Number(match[3]);
+    let day, month;
+
+    // Egyptian date convention: DD/MM/YYYY when the order is ambiguous.
+    if (first > 12) { day = first; month = second; }
+    else if (second > 12) { month = first; day = second; }
+    else { day = first; month = second; }
+
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return year + '-' + pad(month) + '-' + pad(day);
+    }
+  }
+
+  const parsed = new Date(value);
+  return isNaN(parsed) ? value : toISODate(parsed);
+}
+
+function readTab(workbook, tabName) {
+  const sheet = workbook.Sheets[tabName];
+  if (!sheet) throw new Error('Missing tab in Google Sheet: ' + tabName);
+
+  const ref = sheet['!ref'];
+  if (!ref) return [];
+
+  const range = XLSX.utils.decode_range(ref);
+  const records = [];
+
+  // Row 2 contains the column headers; customer records begin on row 3.
+  for (let row = 2; row <= range.e.r; row++) {
+    const name = getCellText(sheet, row, 0);
+    if (!name) continue;
+
+    records.push({
+      category: tabName,
+      name,
+      phone: getCellText(sheet, row, 1),
+      date: getCellDate(sheet, row, 2),
+      source: getCellText(sheet, row, 3),
+      agent: getCellText(sheet, row, 4),
+      originalStatus: getCellText(sheet, row, 5),
+      notes: getCellText(sheet, row, 6)
+    });
+  }
+
+  return records;
+}
+
+function normalizeName(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function normalizePhone(value) {
+  return String(value || '').replace(/\D/g, '');
+}
+
+function removeDuplicates(records) {
+  const priority = {
+    'Inquiries': 1,
+    'Interested': 2,
+    'Booking Not Completed': 3
+  };
+  const unique = [];
+
+  records.forEach(record => {
+    const phoneKey = normalizePhone(record.phone);
+    const nameKey = normalizeName(record.name);
+
+    // Match by phone first, and by exact normalized name as a fallback.
+    const existingIndex = unique.findIndex(item =>
+      (phoneKey && normalizePhone(item.phone) === phoneKey) ||
+      (nameKey && normalizeName(item.name) === nameKey)
+    );
+
+    if (existingIndex === -1) {
+      unique.push(record);
+      return;
+    }
+
+    const existing = unique[existingIndex];
+    const incomingWins = (priority[record.category] || 0) > (priority[existing.category] || 0);
+    const winner = incomingWins ? record : existing;
+    const other = incomingWins ? existing : record;
+
+    unique[existingIndex] = {
+      ...other,
+      ...winner,
+      phone: winner.phone || other.phone,
+      date: winner.date || other.date,
+      source: winner.source || other.source,
+      agent: winner.agent || other.agent,
+      originalStatus: winner.originalStatus || other.originalStatus,
+      notes: [winner.notes, other.notes].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(' | ')
+    };
+  });
+
+  return unique;
+}
+
+async function fetchWorkbook() {
+  const url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+    '/export?format=xlsx&cb=' + Date.now();
+  const response = await fetch(url, {cache: 'no-store'});
+
+  if (!response.ok) {
+    throw new Error('Google Sheets returned HTTP ' + response.status +
+      '. Check that the spreadsheet is shared for public viewing.');
+  }
+
+  const buffer = await response.arrayBuffer();
+  return XLSX.read(buffer, {type: 'array', cellDates: true});
+}
+
+async function fetchTabCSV(tabName) {
+  const url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+    '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(tabName) +
+    '&cb=' + Date.now();
+  const response = await fetch(url, {cache: 'no-store'});
+
+  if (!response.ok) throw new Error('CSV export failed for tab: ' + tabName);
+
+  const csv = await response.text();
+  if (!csv || csv.trim().startsWith('<')) {
+    throw new Error('Google Sheets did not return CSV data for tab: ' + tabName);
+  }
+
+  const workbook = XLSX.read(csv, {type: 'string', cellDates: true});
+  const firstTab = workbook.SheetNames[0];
+  if (!firstTab) throw new Error('No CSV rows found for tab: ' + tabName);
+
+  // CSV export starts from the first row, so it follows the same row-2-header layout.
+  const wrapper = {Sheets: {[tabName]: workbook.Sheets[firstTab]}};
+  return readTab(wrapper, tabName);
+}
+
+async function loadData(showStatus = false) {
+  if (loading) return;
+  loading = true;
+
+  const button = $('refreshButton');
+  button.disabled = true;
+  $('connection').textContent = 'Syncing Google Sheets…';
+
+  try {
+    let records = [];
+
+    try {
+      const workbook = await fetchWorkbook();
+      const missingTabs = TAB_NAMES.filter(name => !workbook.SheetNames.includes(name));
+      if (missingTabs.length) throw new Error('Missing tab(s): ' + missingTabs.join(', '));
+      records = TAB_NAMES.flatMap(name => readTab(workbook, name));
+    } catch (xlsxError) {
+      console.warn('XLSX export failed; trying CSV fallback.', xlsxError);
+      const results = await Promise.all(TAB_NAMES.map(fetchTabCSV));
+      records = results.flat();
+    }
+
+    allLeads = removeDuplicates(records);
+
+    $('connection').textContent = '● Connected to Google Sheets';
+    $('updated').textContent = 'Last sync: ' + new Date().toLocaleString();
+
+    const sources = [...new Set(allLeads.map(item => item.source || 'Not specified'))].sort();
+    const previousSource = $('source').value;
+    $('source').innerHTML = '<option value="">All lead sources</option>' +
+      sources.map(source => '<option value="' + esc(source) + '">' + esc(source) + '</option>').join('');
+    $('source').value = sources.includes(previousSource) ? previousSource : '';
+
+    render();
+  } catch (error) {
+    console.error('Google Sheets sync failed:', error);
+    $('connection').textContent = 'Connection error';
+    if (!allLeads.length) {
+      $('rows').innerHTML = '<tr><td colspan="7" class="error">' +
+        esc(error.message || error) +
+        '<br><br>Make sure the Google Sheet is publicly viewable and that all three tab names are correct.</td></tr>';
+    } else if (showStatus) {
+      $('updated').textContent = 'Refresh failed. Showing the last successfully loaded data.';
+    }
+  } finally {
+    loading = false;
+    button.disabled = false;
+  }
+}
+
+function getFilteredRecords() {
+  const query = $('search').value.trim().toLowerCase();
+  const category = $('category').value;
+  const source = $('source').value;
+  const fromDate = $('from').value;
+  const toDate = $('to').value;
+
+  return allLeads.filter(item => {
+    const searchable = (item.name + ' ' + item.phone).toLowerCase();
+    return (!query || searchable.includes(query)) &&
+      (!category || item.category === category) &&
+      (!source || (item.source || 'Not specified') === source) &&
+      (!fromDate || (item.date && item.date >= fromDate)) &&
+      (!toDate || (item.date && item.date <= toDate));
   });
 }
-function render(){
-  const list=filtered(), counts={'Interested':0,'Inquiries':0,'Booking Not Completed':0}, sources={};
-  list.forEach(x=>{counts[x.category]=(counts[x.category]||0)+1;const s=x.source||'Not specified';sources[s]=(sources[s]||0)+1;});
-  $('total').textContent=list.length.toLocaleString();
-  $('interested').textContent=(counts.Interested||0).toLocaleString();
-  $('inquiries').textContent=(counts.Inquiries||0).toLocaleString();
-  $('incomplete').textContent=(counts['Booking Not Completed']||0).toLocaleString();
-  $('recordCount').textContent=list.length.toLocaleString()+' records';
-  $('rows').innerHTML=list.length?list.map(x=>`<tr><td><span class="pill">${esc(x.category)}</span></td><td>${esc(x.name)}</td><td>${esc(x.phone)}</td><td>${esc(x.date)}</td><td>${esc(x.source)}</td><td>${esc(x.agent)}</td><td>${esc(x.notes)}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">No matching records</td></tr>';
-  drawCharts(counts,sources);
+
+function render() {
+  const records = getFilteredRecords();
+  const counts = {'Interested': 0, 'Inquiries': 0, 'Booking Not Completed': 0};
+  const sources = {};
+
+  records.forEach(item => {
+    counts[item.category] = (counts[item.category] || 0) + 1;
+    const source = item.source || 'Not specified';
+    sources[source] = (sources[source] || 0) + 1;
+  });
+
+  $('total').textContent = records.length.toLocaleString();
+  $('interested').textContent = (counts['Interested'] || 0).toLocaleString();
+  $('inquiries').textContent = (counts['Inquiries'] || 0).toLocaleString();
+  $('incomplete').textContent = (counts['Booking Not Completed'] || 0).toLocaleString();
+  $('recordCount').textContent = records.length.toLocaleString() + ' records';
+
+  $('rows').innerHTML = records.length
+    ? records.map(item => '<tr>' +
+        '<td><span class="pill">' + esc(item.category) + '</span></td>' +
+        '<td>' + esc(item.name) + '</td>' +
+        '<td>' + esc(item.phone) + '</td>' +
+        '<td>' + esc(item.date) + '</td>' +
+        '<td>' + esc(item.source) + '</td>' +
+        '<td>' + esc(item.agent) + '</td>' +
+        '<td>' + esc(item.notes) + '</td>' +
+      '</tr>').join('')
+    : '<tr><td colspan="7" class="empty">No matching records</td></tr>';
+
+  drawCharts(counts, sources);
 }
-function drawCharts(counts,sources){
-  const catLabels=['Interested','Inquiries','Booking Not Completed'], catVals=catLabels.map(x=>counts[x]||0);
-  if(categoryChart)categoryChart.destroy();
-  categoryChart=new Chart($('categoryChart'),{type:'bar',data:{labels:catLabels,datasets:[{data:catVals,backgroundColor:['#064C40','#65C6B0','#9BD8C9'],borderRadius:7}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
-  if(sourceChart)sourceChart.destroy();
-  const entries=Object.entries(sources).sort((a,b)=>b[1]-a[1]);
-  sourceChart=new Chart($('sourceChart'),{type:'doughnut',data:{labels:entries.map(x=>x[0]),datasets:[{data:entries.map(x=>x[1]),backgroundColor:['#064C40','#65C6B0','#9BD8C9','#B5DCD2','#397F70','#A5BFB7','#D6E9E3','#8BA99F']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}}}});
+
+function drawCharts(counts, sources) {
+  const categoryLabels = ['Interested', 'Inquiries', 'Booking Not Completed'];
+  const categoryValues = categoryLabels.map(label => counts[label] || 0);
+
+  if (categoryChart) categoryChart.destroy();
+  categoryChart = new Chart($('categoryChart'), {
+    type: 'bar',
+    data: {
+      labels: categoryLabels,
+      datasets: [{
+        data: categoryValues,
+        backgroundColor: ['#064C40', '#65C6B0', '#9BD8C9'],
+        borderRadius: 7
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {legend: {display: false}},
+      scales: {y: {beginAtZero: true, ticks: {precision: 0}}}
+    }
+  });
+
+  if (sourceChart) sourceChart.destroy();
+  const entries = Object.entries(sources).sort((a, b) => b[1] - a[1]);
+  sourceChart = new Chart($('sourceChart'), {
+    type: 'doughnut',
+    data: {
+      labels: entries.map(entry => entry[0]),
+      datasets: [{
+        data: entries.map(entry => entry[1]),
+        backgroundColor: ['#064C40', '#65C6B0', '#9BD8C9', '#B5DCD2', '#397F70', '#A5BFB7', '#D6E9E3', '#8BA99F']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {legend: {position: 'bottom', labels: {boxWidth: 10, font: {size: 10}}}}
+    }
+  });
 }
-['search','category','source','from','to'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
-loadData(); setInterval(loadData,60000);
+
+['search', 'category', 'source', 'from', 'to'].forEach(id => {
+  $(id).addEventListener(id === 'search' ? 'input' : 'change', render);
+});
+
+loadData();
+setInterval(() => loadData(false), 60000);
 </script>
 </body>
 </html>
